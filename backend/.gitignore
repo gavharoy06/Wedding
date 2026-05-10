@@ -1,0 +1,28 @@
+# 1. Bog'liqliklar (Dependencies)
+# Ikkala papka ichidagi node_modules larni ignore qiladi
+node_modules/
+**/node_modules/
+
+# 2. Maxfiy ma'lumotlar (Environment Variables)
+# Barcha .env fayllarini ignore qiladi (DATABASE_URL, JWT_SECRET va h.k.)
+.env
+
+**/.env
+
+# 3. Build (Tayyor proekt) fayllari
+# Frontend dist yoki build papkasi
+dist/
+build/
+**/dist/
+**/build/
+
+# 4. Operatsion tizim va IDE fayllari
+.DS_Store
+.vscode/
+.idea/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 5. TypeScript log fayllari
+tsbuildinfo/
