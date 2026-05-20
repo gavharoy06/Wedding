@@ -1,0 +1,39 @@
+name: Deploy Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - main  # Kod qaysi branchga push bo'lganda CI/CD ishga tushishi kerakligi
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository kodi
+        uses: actions/checkout@v4
+
+      - name: AWS Serverga SSH orqali ulanish va Yangilash
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_SERVER_IP }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # 1. Serverda loyiha papkasi bor yoki yo'qligini tekshirish (Yo'q bo'lsa birinchi marta clone qiladi)
+            if [ ! -d "Wedding" ]; then
+              git clone https://github.com/${{ github.repository }}.git Wedding
+            fi
+            
+            cd Wedding/Backend
+            
+            # 2. GitHub'dan eng oxirgi o'zgarishlarni yuklab olish
+            git reset --hard HEAD
+            git pull origin main
+            
+            # 3. Paketlarni yuklash va TypeScript kodni build qilish
+            npm install
+            npm run build
+            
+            # 4. PM2 orqali loyihani 5000-portda orqa fonda qayta ishga tushirish
+            pm2 restart wedding-backend || pm2 start dist/server.js --name "wedding-backend"
