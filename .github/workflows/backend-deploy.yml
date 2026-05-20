@@ -1,21 +1,42 @@
-script: |
-  # 1. Ec2 serverining mutloq asosiy papkasiga o'tib olish
-  cd /home/ec2-user
+name: Deploy Backend to AWS EC2
 
-  # 2. Agar papka yo'q bo'lsa clone qiladi, bor bo'lsa ichiga kiradi
-  if [ ! -d "Wedding" ]; then
-    git clone https://github.com/gavharoy06/Wedding.git Wedding
-  fi
+on:
+  push:
+    branches:
+      - main  # Kod main branchga push bo'lganda CI/CD ishga tushadi
 
-  cd /home/ec2-user/Wedding/Backend
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  # 3. GitHub'dan eng oxirgi o'zgarishlarni tortib olish
-  git reset --hard HEAD
-  git pull origin main
+    steps:
+      - name: Checkout Repository kodi
+        uses: actions/checkout@v4
 
-  # 4. Paketlarni yuklash va build qilish
-  npm install
-  npm run build
-
-  # 5. PM2 orqali 5000-portda ishga tushirish
-  pm2 restart wedding-backend || pm2 start dist/server.js --name "wedding-backend"
+      - name: AWS Serverga SSH orqali ulanish va Yangilash
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_SERVER_IP }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # 1. Ec2 serverining mutloq asosiy papkasiga o'tib olish
+            cd /home/ec2-user
+            
+            # 2. Agar papka yo'q bo'lsa clone qiladi
+            if [ ! -d "Wedding" ]; then
+              git clone https://github.com/gavharoy06/Wedding.git Wedding
+            fi
+            
+            cd /home/ec2-user/Wedding/Backend
+            
+            # 3. GitHub'dan eng oxirgi o'zgarishlarni tortib olish
+            git reset --hard HEAD
+            git pull origin main
+            
+            # 4. Paketlarni yuklash va build qilish
+            npm install
+            npm run build
+            
+            # 5. PM2 orqali 5000-portda ishga tushirish
+            pm2 restart wedding-backend || pm2 start dist/server.js --name "wedding-backend"
