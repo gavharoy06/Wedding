@@ -3,7 +3,7 @@ name: Deploy Backend to AWS EC2
 on:
   push:
     branches:
-      - main  # Kod main branchga push bo'lganda CI/CD ishga tushadi
+      - main
 
 jobs:
   deploy:
@@ -20,23 +20,23 @@ jobs:
           username: ${{ secrets.AWS_USER }}
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
-            # 1. Ec2 serverining mutloq asosiy papkasiga o'tib olish
             cd /home/ec2-user
             
-            # 2. Agar papka yo'q bo'lsa clone qiladi
-            if [ ! -d "Wedding" ]; then
-              git clone https://github.com/gavharoy06/Wedding.git Wedding
+            # Agar eski noto'g'ri nomlangan papka bo'lsa o'chirib tashlaymiz
+            rm -rf Wedding
+            
+            # Kichik harf bilan yangitdan toza clone qilamiz
+            if [ ! -d "wedding" ]; then
+              git clone https://github.com/gavharoy06/Wedding.git wedding
             fi
             
-            cd /home/ec2-user/Wedding/Backend
+            # DIQQAT: Agar papkangiz nomi 'bachend' bo'lsa, pastdagi backend so'zini bachend qiling:
+            cd /home/ec2-user/wedding/backend
             
-            # 3. GitHub'dan eng oxirgi o'zgarishlarni tortib olish
             git reset --hard HEAD
             git pull origin main
             
-            # 4. Paketlarni yuklash va build qilish
             npm install
             npm run build
             
-            # 5. PM2 orqali 5000-portda ishga tushirish
             pm2 restart wedding-backend || pm2 start dist/server.js --name "wedding-backend"
