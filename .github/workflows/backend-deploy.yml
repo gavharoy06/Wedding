@@ -22,15 +22,15 @@ jobs:
           script: |
             cd /home/ec2-user
             
-            # Agar eski noto'g'ri nomlangan papka bo'lsa o'chirib tashlaymiz
+            
             rm -rf Wedding
             
-            # Kichik harf bilan yangitdan toza clone qilamiz
+           
             if [ ! -d "wedding" ]; then
               git clone https://github.com/gavharoy06/Wedding.git wedding
             fi
             
-            # DIQQAT: Agar papkangiz nomi 'bachend' bo'lsa, pastdagi backend so'zini bachend qiling:
+            
             cd /home/ec2-user/wedding/backend
             
             git reset --hard HEAD

@@ -1,3 +1,4 @@
+// moddleware/auth.ts
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest, JwtPayload } from '../types';

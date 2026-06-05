@@ -15,6 +15,7 @@ dist/
 build/
 **/dist/
 **/build/
+uploads/
 
 # 4. Operatsion tizim va IDE fayllari
 .DS_Store

@@ -1,15 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from '../features/auth/authSlice';
-import venueReducer from '../features/venues/venueSlice';
-import bookingReducer from '../features/bookings/bookingSlice';
+import { api } from '../services/api';
 
 export const store = configureStore({
   reducer: {
-    auth:     authReducer,
-    venues:   venueReducer,
-    bookings: bookingReducer,
+    [api.reducerPath]: api.reducer,
   },
+  middleware: (getDefault) => getDefault().concat(api.middleware),
 });
 
-export type RootState   = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
