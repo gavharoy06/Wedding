@@ -37,7 +37,7 @@ export const createVenue = async (
 
     await client.query("BEGIN");
 
-    const hashedPassword = await bcrypt.hash(owner_password, 12);
+    const hashedPassword = await bcrypt.hash(owner_password, 10);
     const ownerResult = await client.query(
       `INSERT INTO users (name, email, password, role, is_verified)
        VALUES ($1, $2, $3, 'owner', TRUE)
@@ -45,13 +45,6 @@ export const createVenue = async (
       [owner_name, owner_email, hashedPassword],
     );
     const owner_id = ownerResult.rows[0].user_id;
-
-    await client.query(
-      `INSERT INTO users (name, email, password, role, is_verified)
-   VALUES ($1, $2, $3, 'owner', FALSE)   -- FALSE: birinchi login'da OTP
-   RETURNING user_id`,
-      [owner_name, owner_email, hashedPassword],
-    );
 
     // Admin qo'shsa to'g'ridan-to'g'ri APPROVED
     const venueResult = await client.query(
@@ -146,26 +139,50 @@ export const updateVenueStatus = async (
   }
 };
 
-// ─── TO'YXONA O'CHIRISH (CASCADE FK borligi uchun sodda) ───
+// ─── TO'YXONA O'CHIRISH 
 export const deleteVenue = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query(
-      `DELETE FROM venues WHERE venue_id = $1 RETURNING venue_id`,
-      [id],
+  const admin = await pool.connect()
+  try{
+    const {id} = req.params;
+
+    await admin.query('BEGIN')
+    
+    await admin.query(
+      "DELETE FROM booking_extra_services WHERE booking_id IN (SELECT booking_id FROM bookings WHERE venue_id = $1)",
+      [id]
     );
-    if (result.rows.length === 0) {
+    await admin.query(
+      "DELETE FROM bookings WHERE venue_id = $1",
+      [id]
+    );
+
+    const result = await admin.query(
+      "DELETE FROM venues WHERE venue_id = $1 RETURNING *",
+      [id]
+    );
+
+    
+    if(result.rows.length === 0){
       res.status(404).json({ message: "To'yxona topilmadi." });
       return;
     }
-    res.status(200).json({ message: "To'yxona o'chirildi." });
-  } catch (error) {
+    await admin.query('COMMIT');
+    res.status(200).json({message:"To'yxona va unga tegishli rasmlar/xizmatlar o'chirildi."})
+  
+  }catch(error){
+    await admin.query('ROLLBACK'); // Xato bo'lsa, hech narsa o'chmaydi
     console.error("deleteVenue xatosi:", error);
-    res.status(500).json({ message: "Server xatosi." });
+    res.status(500).json({ 
+      message: "O'chirish jarayonida xatolik yuz berdi. Ma'lumotlar himoyalandi." 
+    });
+    
+  }finally {
+    admin.release();
   }
+
 };
 
 // ─── BARCHA BRONLAR (admin) ───
@@ -200,15 +217,29 @@ export const getAllVenues = async (
   try {
     const { status } = req.query;
     let query = `
-      SELECT v.*, d.district_name, u.name AS owner_name, u.email AS owner_email
-      FROM venues v
-      JOIN users u ON v.owner_id = u.user_id
-      JOIN districts d ON v.district_id = d.district_id`;
+      SELECT 
+    v.*, 
+    d.district_name, 
+    u.name AS owner_name,
+    -- Rasmlarni JSON massivi sifatida yig'amiz
+    json_agg(
+        json_build_object(
+            'image_id', vi.image_id,
+            'image_url', vi.image_url,
+            'is_primary', vi.is_primary
+        ) ORDER BY vi.is_primary DESC, vi.image_id ASC
+    ) FILTER (WHERE vi.image_id IS NOT NULL) AS images
+FROM venues v
+JOIN districts d ON v.district_id = d.district_id
+JOIN users u ON v.owner_id = u.user_id
+LEFT JOIN venue_images vi ON v.venue_id = vi.venue_id  -- LEFT JOIN muhim!
+`;
     const params: any[] = [];
     if (status) {
       query += ` WHERE v.status = $1`;
       params.push(status);
     }
+    query += `GROUP BY v.venue_id, d.district_name, u.name`
     query += ` ORDER BY v.created_at DESC`;
     const result = await pool.query(query, params);
     res.status(200).json({ venues: result.rows });
@@ -270,7 +301,7 @@ export const deleteVenueImage = async (req: Request, res: Response): Promise<voi
     const result = await pool.query(
       `DELETE FROM venue_images WHERE image_id = $1 RETURNING image_url`,
       [imageId]
-    );
+    )
     if (result.rows.length === 0) {
       res.status(404).json({ message: 'Rasm topilmadi.' });
       return;

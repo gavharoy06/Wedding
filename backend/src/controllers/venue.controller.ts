@@ -10,7 +10,8 @@ export const getVenues = async (req: Request, res: Response): Promise<void> => {
     let query = `
       SELECT v.*, d.district_name,
              (SELECT image_url FROM venue_images vi
-                WHERE vi.venue_id = v.venue_id AND vi.is_primary = TRUE
+                WHERE vi.venue_id = v.venue_id
+                order by vi.is_primary desc, vi.image_id asc
                 LIMIT 1) AS primary_image
       FROM venues v
       JOIN districts d ON v.district_id = d.district_id
@@ -93,6 +94,19 @@ export const getVenueById = async (req: Request, res: Response): Promise<void> =
     });
   } catch (error) {
     console.error('getVenueById xatosi:', error);
+    res.status(500).json({ message: 'Server xatosi.' });
+  }
+};
+
+
+export const getDistricts = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await pool.query(
+      'SELECT district_id, district_name FROM districts ORDER BY district_id'
+    );
+    res.status(200).json({ districts: result.rows });
+  } catch (error) {
+    console.error('getDistricts xatosi:', error);
     res.status(500).json({ message: 'Server xatosi.' });
   }
 };

@@ -144,3 +144,44 @@ export const updateOwnerVenue = async (req: AuthRequest, res: Response): Promise
     res.status(500).json({ message: 'Server xatosi.' });
   }
 };
+
+// owner.controller.ts ga qo'shing:
+export const uploadVenueImages = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { venue_id } = req.body;
+    const files = req.files as Express.Multer.File[];
+    
+    if (!files || files.length === 0) {
+      res.status(400).json({ message: "Hech qanday fayl yuklanmadi." });
+      return;
+    }
+    
+    // Owner faqat o'z venuesiga rasm yuklay olishini tekshirish
+    const check = await pool.query(
+      `SELECT venue_id FROM venues WHERE venue_id = $1 AND owner_id = $2`,
+      [venue_id, req.user?.user_id]
+    );
+    
+    if (check.rows.length === 0) {
+      res.status(403).json({ message: "Bu to'yxona sizga tegishli emas." });
+      return;
+    }
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const imageUrl = `/uploads/${file.filename}`;
+      const isPrimary = i === 0; // birinchi rasm primary
+      
+      await pool.query(
+        `INSERT INTO venue_images (venue_id, image_url, is_primary)
+         VALUES ($1, $2, $3)`,
+        [venue_id, imageUrl, isPrimary]
+      );
+    }
+    
+    res.status(200).json({ message: `${files.length} ta rasm yuklandi.` });
+  } catch (error) {
+    console.error('uploadVenueImages xatosi:', error);
+    res.status(500).json({ message: 'Server xatosi.' });
+  }
+};

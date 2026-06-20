@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-export type UserRole = 'user' | 'owner' | 'admin';
+export type UserRole = 'client' | 'owner' | 'admin';
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
 export type VenueStatus = 'PENDING' | 'APPROVED' | 'REJECTED';

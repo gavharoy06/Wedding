@@ -31,10 +31,9 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use('/api/auth',           authRoutes);
 app.use('/api/venues',         venueRoutes);
 app.use('/api/bookings',       bookingRoutes);
-app.use('/api/owner/bookings', ownerRoutes);
 app.use('/api/admin',          adminRoutes);
+app.use('/api/owner',          ownerRoutes);
 app.use('/api/extra-services', extraRoutes);
-app.use('/api/owner', ownerRoutes);
 
 
 app.get('/', (_req, res) => {

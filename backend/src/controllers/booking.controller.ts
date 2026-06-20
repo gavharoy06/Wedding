@@ -102,7 +102,7 @@ export const getMyBookings = async (req: AuthRequest, res: Response): Promise<vo
   try {
     const user_id = req.user?.user_id;
     const result = await pool.query(
-      `SELECT b.booking_id, b.booking_date, b.additional_info, b.guest_count,
+      `SELECT b.booking_id, b.venue_id, b.booking_date, b.additional_info, b.guest_count,
               b.total_price, b.prepayment, b.status, b.created_at,
               v.name AS venue_name, d.district_name AS venue_district, v.price AS venue_price
        FROM bookings b
