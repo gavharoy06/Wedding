@@ -49,7 +49,7 @@ Loyiha PostgreSQL relyatsion ma'lumotlar bazasida qurilgan va quyidagi asosiy ja
 
 ### 1. Repozitoriyani yuklab oling:
 ```bash
-git clone [https://github.com/USERNAME/REPOS-NAME.git](https://github.com/USERNAME/REPOS-NAME.git)
+git clone [https://github.com/gavharoy06/Wedding.git)
 cd REPOS-NAME
 
 cd backend
