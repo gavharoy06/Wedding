@@ -51,3 +51,20 @@ Loyiha PostgreSQL relyatsion ma'lumotlar bazasida qurilgan va quyidagi asosiy ja
 ```bash
 git clone [https://github.com/USERNAME/REPOS-NAME.git](https://github.com/USERNAME/REPOS-NAME.git)
 cd REPOS-NAME
+
+cd backend
+npm install
+# .env faylini ochib, DB_URL, JWT_SECRET va AWS kalitlarini kiriting
+npm start
+
+
+cd ../frontend
+npm install
+npm start
+
+Muallif (Author)
+Gavharoy-Azamatova - Junior Frontend / Node.js & React Developer
+
+LinkedIn: linkedin.com/in/gavharoy-azamatxojaeva-138929282
+
+Telegram: @gavharazamatova
